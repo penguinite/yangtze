@@ -5,6 +5,7 @@ author        = "penguinite"
 description   = "A CMS built on top of a MastoAPI-compatible server"
 license       = "AGPL-3.0-or-later"
 srcDir        = "src"
+binDir        = "build"
 bin           = @["yangtze"]
 
 
