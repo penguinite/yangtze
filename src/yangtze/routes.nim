@@ -1,6 +1,6 @@
-import mummy, conf, std/[tables, strutils]
+import mummy, conf, std/[tables,strutils], temple, waterpark
 
-let configPool = newConfigPool()
+let configPool* = newConfigPool()
 
 proc configValueToString(val: ConfigValue): string =
   case val.kind:
@@ -16,29 +16,57 @@ proc configValueToString(val: ConfigValue): string =
 proc configToTable(cnf: ConfigTable): Table[string, string] =
   for key,val in cnf.pairs:
     if key[0] == "custom" and val.kind != CVTable:
-      result[key[1]] = configValueToString(val)
+      # Check if this is a special "File string" or whatever
+      if startsWith(val.stringVal, "$") and endsWith(val.stringVal, "$"):
+        result[key[1]] = readFile(val.stringVal[1..^2])
+      else:
+        # Otherwise, just convert it into a string and add it into the table
+        result[key[1]] = configValueToString(val)
+
+# Yup... there is more cryptic code! My favorite!
+type TmplPool* = Pool[Table[string,string]]
+proc borrow*(pool: TmplPool): Table[string,string] {.inline, gcsafe.} = waterpark.borrow(pool)
+proc recycle*(pool: TmplPool, conn: Table[string,string]) {.inline, gcsafe.} = waterpark.recycle(pool, conn)
+
+proc newTmplPool*(size: int = 50): TmplPool =
+  result = newPool[Table[string,string]]()
+  let tmp = configToTable(parseFile(getConfigFilename()))
+  for _ in 0 ..< size: result.recycle(tmp)
+
+template withConnection*(pool: TmplPool, config, body) =
+  block:
+    let config = pool.borrow()
+    try:
+      body
+    finally:
+      pool.recycle(config)
+
+let tmplPool* = newTmplPool()
+
 
 proc fetchAsset(fn: string): string =
-  return #TODO: Implement
+  return readFile("pages/" & fn & ".tmpl")
 
+proc pageHandler*(req: Request) =
+  var fn = req.path[0..^1] # Remove initial slash
 
-proc indexHandler*(request: Request) =
-  # Check if the config has specified the 
-  # post display page to be first.
-  configPool.withConnection config:
-    if config.getStringOrDefault("web","posts_slug","post") == "":
-      discard # TODO: Implement post displays
-    else:
-      # Render "home.tmpl"
-      # TODO: Implement
-      discard
+  # Remove last slash, if it exists and this isn't the landing page.
+  if fn[high(fn)] == '/' and fn != "/": fn = fn[0..^2]
 
   var headers: HttpHeaders
-  headers["Content-Type"] = "text/plain"
-  request.respond(200, headers, "Hello, World!")
+  headers["Content-Type"] = "text/html"
 
-proc portHandler*(req: Request) =
+  tmplPool.withConnection tmpl:
+    req.respond(200, headers,
+      templateify(fetchAsset(fn), tmpl)
+    )
+
+proc homHandler*(request: Request) =
+  # Render "home.tmpl"
   var headers: HttpHeaders
-  headers["Content-Type"] = "text/plain"
-  configPool.withConnection config:
-    req.respond(200, headers, "Port: " & $(config.getIntOrDefault("web","port",8080)))
+  headers["Content-Type"] = "text/html"
+  
+  tmplPool.withConnection tmpl:
+    request.respond(200, headers,
+      templateify(fetchAsset("home"), tmpl)
+    )
