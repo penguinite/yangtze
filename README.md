@@ -1,8 +1,10 @@
 # Yangtze
 
-A CMS built on top of a MastoAPI-compatible server (such as Mastodon, Pleroma or [Pothole](https://github.com/penguinite/pothole.git))
+A low-level CMS built on top of a MastoAPI-compatible server (such as Mastodon, Pleroma or [Pothole](https://github.com/penguinite/pothole.git))
 
 PS: *I made this thing entirely for myself, so, some things are poorly documented and you probably shouldn't use this as a real CMS. Open a bug report if you really want me to fix this mess so you can use this as well, just know that I might be busy with more important things.*
+
+This source tree has no theme and it is expected that you will configure it on your own. For my own personal sites and whatnot, I use a different branch which has my custom theme.
 
 ## Why?
 
@@ -30,7 +32,14 @@ When you have the entire setup ready (Yangtze + Your backend of choice),
 you'll need to log on to your server (using [whatever client](https://joinmastodon.org/apps), it doesn't matter) and then just make a regular post.
 Yangtze will retrieve that post and then display it on your page! (You can also access it thru `[YOUR SITE HERE]/posts/[POST ID]`) 
 
-To write simple pages, you'll need to make a folder named `pages` and then add your article in markdown or rst. It will be available at `[YOUR SITE HERE]/[YOUR PAGE NAME]/`
-So, if you wrote a document named `about.md` then you should see it at `[YOUR SITE HERE]/about/`
+To write simple pages, you'll need to make a folder named `pages` and then add your article in templated HTML. It will be available at `[YOUR SITE HERE]/[YOUR PAGE NAME]/`
+So, if you wrote a document named `about.tmpl` then you should see it at `[YOUR SITE HERE]/about/`
 
 You can configure Yangtze through a config file.
+
+## Templating and more internal messy details
+
+Files in the `pages/` folder are treated as "template files", so if you create a file at `pages/bio.tmpl` then it will be rendered and visible through `[YOUR SITE HERE]/bio/`.
+Templates cn pull in data from the config file (and also the contents of other files!)
+
+Files in the `static/` folder are just treated as plain simple static files, so, if you create a file at `static/hello.png` then it will be visible at `[YOUR SITE HERE]/hello.png`
