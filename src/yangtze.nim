@@ -31,12 +31,17 @@ if dirExists("./static"):
     echo "Static file ", f.path, " will be visible at /", fn
     router.get("/" & fn, staticHandler)
 
+let config = parseFile(getConfigFilename())
+let postsSlug = config.getStringOrDefault("web", "posts_slug", "/posts")
 
-echo router
+router.get(postsSlug, postDisplayHandler)
+if postsSlug != "/":
+  router.get(postsSlug & "/", postDisplayHandler)
+  router.get("/", homeHandler)
 
-var
-  config = parseFile(getConfigFilename())
-  port = config.getIntOrDefault("web","port",8080)
+echo "Posts will be displayed at " & postsSlug
+
+let port = config.getIntOrDefault("web","port",8080)
 
 echo "Serving on http://localhost:", port
 newServer(router).serve(Port(port))

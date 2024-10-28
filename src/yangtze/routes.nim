@@ -32,7 +32,13 @@ proc staticHandler*(req: Request) =
   headers["Content-Type"] = mimedb.getMimetype(ext)
   req.respond(200, headers, readFile("static/" & req.path[1..^1]))
 
-proc homeHandler*(request: Request) =
+proc postDisplayHandler*(req: request) =
+  return
+
+proc postListHandler*(req: request) =
+  return
+
+proc homeHandler*(req: Request) =
   # Render "home.tmpl"
   var headers: HttpHeaders
   headers["Content-Type"] = "text/html"
