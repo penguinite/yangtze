@@ -33,9 +33,11 @@ proc staticHandler*(req: Request) =
   req.respond(200, headers, readFile("static/" & req.path[1..^1]))
 
 proc postDisplayHandler*(req: request) =
+  ## Displays an individual post, including the comments underneath.
   return
 
 proc postListHandler*(req: request) =
+  ## Displays a list of posts, with pagination hopefully.
   return
 
 proc homeHandler*(req: Request) =
