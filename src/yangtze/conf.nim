@@ -42,3 +42,10 @@ proc configToTable*(cnf: ConfigTable): Table[string, string] =
       else:
         # Otherwise, just convert it into a string and add it into the table
         result[key[1]] = configValueToString(val)
+
+proc trimCustom*(cnf: ConfigTable): ConfigTable =
+  ## When given a configuration file, it will throw away everything in the "custom" section.
+  for key,val in cnf.pairs:
+    if key != "custom":
+      result[key] = val
+  return result
