@@ -1,3 +1,5 @@
+## This is where I store the horrendous "TmplPool" object.
+
 import conf
 import std/[tables, mimetypes]
 import iniplus, waterpark
